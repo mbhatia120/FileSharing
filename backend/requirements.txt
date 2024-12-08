@@ -1,0 +1,9 @@
+Django>=4.2.0
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+cryptography
+python-jose[cryptography]
+python-magic
+django-otp
+qrcode 
