@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { uploadFile } from '@/services/api';
+import { auth } from '@/utils/auth';
 
 interface FileUploadProps {
-  onFileUpload: (encryptedFile: ArrayBuffer, fileName: string, fileType: string) => void;
+  onFileUpload?: (encryptedFile: ArrayBuffer, fileName: string, fileType: string) => void;
 }
 
 const SUPPORTED_EXTENSIONS = [
@@ -20,6 +22,9 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isEncrypting, setIsEncrypting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [encryptedData, setEncryptedData] = useState<ArrayBuffer | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
@@ -81,12 +86,29 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
 
       setSelectedFile(file);
       setIsEncrypting(true);
-      const encryptedData = await encryptFile(file, encryptionKey);
-      onFileUpload(encryptedData, file.name, file.type);
+      const encrypted = await encryptFile(file, encryptionKey);
+      setEncryptedData(encrypted);
+      onFileUpload?.(encrypted, file.name, file.type);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process file');
     } finally {
       setIsEncrypting(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile || !encryptedData) return;
+    
+    try {
+      setIsUploading(true);
+      setError(null);
+      await uploadFile(encryptedData, selectedFile.name, selectedFile.type);
+      clearSelection();
+      // Optional: Show success message
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload file');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -102,6 +124,8 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
   const clearSelection = () => {
     setSelectedFile(null);
     setError(null);
+    setEncryptedData(null);
+    setUploadProgress(0);
     if (inputRef.current) {
       inputRef.current.value = '';
     }
@@ -180,10 +204,25 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
         </div>
       </div>
 
-      {isEncrypting && (
+      {selectedFile && encryptedData && (
+        <Button
+          className="w-full"
+          onClick={handleUpload}
+          disabled={isUploading || isEncrypting}
+        >
+          {isUploading ? 'Uploading...' : 'Upload File'}
+        </Button>
+      )}
+
+      {(isEncrypting || isUploading) && (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Encrypting file...</p>
-          <Progress value={100} className="animate-pulse" />
+          <p className="text-sm text-muted-foreground">
+            {isEncrypting ? 'Encrypting file...' : 'Uploading file...'}
+          </p>
+          <Progress 
+            value={isUploading ? uploadProgress : 100} 
+            className={isEncrypting ? 'animate-pulse' : ''}
+          />
         </div>
       )}
 
