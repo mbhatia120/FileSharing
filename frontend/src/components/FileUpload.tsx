@@ -13,7 +13,7 @@ interface FileUploadProps {
 }
 
 const SUPPORTED_EXTENSIONS = [
-  'zip', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'
+  'zip', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi','pdf'
 ];
 
 export function FileUpload({ onFileUpload }: FileUploadProps) {
@@ -98,7 +98,7 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
 
   const handleUpload = async () => {
     if (!selectedFile || !encryptedData) return;
-    
+
     try {
       setIsUploading(true);
       setError(null);
@@ -134,7 +134,7 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
   return (
     <div className="w-full space-y-4">
       <Input
-        type="password"
+        type="text"
         placeholder="Enter encryption key (required)"
         value={encryptionKey}
         onChange={(e) => setEncryptionKey(e.target.value)}
@@ -153,6 +153,7 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
       >
         <input
           ref={inputRef}
+          disabled={isEncrypting || isUploading || !encryptionKey || encryptionKey.length === 0}
           type="file"
           className="hidden"
           onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
