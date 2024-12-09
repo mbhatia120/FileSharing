@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { uploadFile } from '@/services/api';
-import { auth } from '@/utils/auth';
 
 interface FileUploadProps {
   onFileUpload?: (encryptedFile: ArrayBuffer, fileName: string, fileType: string) => void;
@@ -88,7 +86,6 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
       setIsEncrypting(true);
       const encrypted = await encryptFile(file, encryptionKey);
       setEncryptedData(encrypted);
-      onFileUpload?.(encrypted, file.name, file.type);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process file');
     } finally {
@@ -102,9 +99,8 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
     try {
       setIsUploading(true);
       setError(null);
-      await uploadFile(encryptedData, selectedFile.name, selectedFile.type);
+      await onFileUpload?.(encryptedData, selectedFile.name, selectedFile.type);
       clearSelection();
-      // Optional: Show success message
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload file');
     } finally {
