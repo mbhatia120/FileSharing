@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -30,53 +30,34 @@ export function FileViewer({
   const [isDecrypting, setIsDecrypting] = useState(false);
 
   const decryptAndDownload = async (fileData: ArrayBuffer, key: string): Promise<ArrayBuffer> => {
-    try {
-      // Convert encryption key to crypto key
-      console.log('Starting decryption process');
-      console.log('File data length:', fileData.byteLength);
-      
-      const encoder = new TextEncoder();
-      const keyData = encoder.encode(key);
-      console.log('Key data length:', keyData.length);
-      
-      const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
-      console.log('Hash buffer length:', hashBuffer.byteLength);
-      
-      const cryptoKey = await crypto.subtle.importKey(
-        'raw',
-        hashBuffer,
-        { name: 'AES-GCM' },
-        false,
-        ['decrypt']
-      );
+    // Convert encryption key to crypto key
+    console.log('Decrypting file with key:', key);
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(key);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      hashBuffer,
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    );
 
-      // Extract IV and encrypted data
-      const iv = new Uint8Array(fileData.slice(0, 12));
-      const encryptedContent = new Uint8Array(fileData.slice(12));
-      console.log('IV length:', iv.length);
-      console.log('Encrypted content length:', encryptedContent.length);
-      console.log('IV:', Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join(''));
+    // Extract IV and encrypted data
+    const iv = new Uint8Array(fileData.slice(0, 12));
+    const encryptedContent = new Uint8Array(fileData.slice(12));
 
-      // Decrypt the content
-      const decryptedContent = await crypto.subtle.decrypt(
-        {
-          name: 'AES-GCM',
-          iv: iv
-        },
-        cryptoKey,
-        encryptedContent
-      );
+    // Decrypt the content
+    const decryptedContent = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv
+      },
+      cryptoKey,
+      encryptedContent
+    );
 
-      return decryptedContent;
-    } catch (error) {
-      console.error('Detailed decryption error:', {
-        error,
-        fileDataLength: fileData.byteLength,
-        ivPresent: fileData.slice(0, 12).byteLength === 12,
-        encryptedContentPresent: fileData.slice(12).byteLength > 0
-      });
-      throw error;
-    }
+    return decryptedContent;
   };
 
   const handleDecrypt = async () => {
@@ -148,30 +129,65 @@ export function FileViewer({
             alt={fileName} 
             className="max-w-full h-auto"
             onLoad={cleanup}
+            style={{ pointerEvents: 'none' }}
           />
         </div>
       );
     } else if (fileType.startsWith('text/')) {
       return (
-        <iframe 
-          src={url} 
-          className="w-full h-[500px] border rounded"
-          title={fileName}
-          onLoad={cleanup}
-        />
+        <div className="w-full h-[500px] border rounded overflow-hidden">
+          <iframe 
+            src={url} 
+            className="w-full h-full"
+            title={fileName}
+            onLoad={cleanup}
+            sandbox="allow-same-origin"
+            style={{ pointerEvents: 'none' }}
+          />
+        </div>
       );
     } else if (fileType === 'application/pdf') {
       return (
-        <iframe 
-          src={url} 
-          className="w-full h-[500px] border rounded"
-          title={fileName}
-          onLoad={cleanup}
-        />
+        <div className="w-full h-[500px] border rounded overflow-hidden">
+          <embed
+            src={url + '#toolbar=0&print=0&download=0'}
+            type="application/pdf"
+            className="w-full h-full"
+            style={{ 
+              pointerEvents: 'auto',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              userSelect: 'none',
+              cursor: 'default'
+            }}
+          />
+        </div>
       );
     } else {
       cleanup();
-      return <p className="text-center text-gray-500">Preview not available for this file type</p>;
+      return (
+        <div className="flex flex-col items-center justify-center space-y-4 py-8">
+          <div className="w-16 h-16 text-gray-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+              />
+            </svg>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-semibold text-gray-700">Preview not available</p>
+            <p className="text-sm text-gray-500">This file type ({fileType}) cannot be previewed</p>
+          </div>
+        </div>
+      );
     }
   };
 
@@ -182,17 +198,6 @@ export function FileViewer({
     setIsDecrypting(false);
     onClose();
   };
-
-  useEffect(() => {
-    if (fileContent) {
-      console.log('Received file content:', {
-        totalLength: fileContent.byteLength,
-        hasIV: fileContent.byteLength > 12,
-        ivLength: 12,
-        contentLength: fileContent.byteLength - 12
-      });
-    }
-  }, [fileContent]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
