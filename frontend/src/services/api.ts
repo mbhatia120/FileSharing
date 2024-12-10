@@ -42,3 +42,14 @@ export const getFiles = async (): Promise<FileResponse[]> => {
   });
   return response.data;
 }; 
+
+export const downloadFile = async (fileId: string): Promise<ArrayBuffer> => {
+  const accessToken = auth.getToken();
+  const response = await api.get(`/files/${fileId}/download`, {
+    responseType: 'arraybuffer',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data;
+}; 

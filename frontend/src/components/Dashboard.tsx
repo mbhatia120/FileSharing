@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { FileUpload } from './FileUpload';
 import { toast } from '@/hooks/use-toast';
-import { getFiles, uploadFile } from '@/services/api';
+import { getFiles, uploadFile, downloadFile } from '@/services/api';
 import { formatDistanceToNow } from 'date-fns';
+import { DecryptionDialog } from './DecryptionDialog';
+import { Button } from '@/components/ui/button';
 
 interface File {
   id: string;
@@ -15,6 +17,8 @@ interface File {
 export default function Dashboard() {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDecryptionDialogOpen, setIsDecryptionDialogOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -82,6 +86,68 @@ export default function Dashboard() {
     return `${size.toFixed(1)} ${units[unitIndex]}`;
   };
 
+  const decryptAndDownload = async (fileData: ArrayBuffer, key: string): Promise<ArrayBuffer> => {
+    // Convert encryption key to crypto key
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(key);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      hashBuffer,
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    );
+
+    // Extract IV and encrypted data
+    const iv = new Uint8Array(fileData.slice(0, 12));
+    const encryptedContent = new Uint8Array(fileData.slice(12));
+
+    // Decrypt the content
+    const decryptedContent = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv
+      },
+      cryptoKey,
+      encryptedContent
+    );
+
+    return decryptedContent;
+  };
+
+  const handleDownload = async (file: File) => {
+    setSelectedFile(file);
+    setIsDecryptionDialogOpen(true);
+  };
+
+  const handleDecrypt = async (decryptionKey: string) => {
+    if (!selectedFile) return;
+
+    try {
+      const encryptedData = await downloadFile(selectedFile.id);
+      const decryptedData = await decryptAndDownload(encryptedData, decryptionKey);
+      
+      // Create and download the decrypted file
+      const blob = new Blob([decryptedData], { type: selectedFile.file_type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = selectedFile.original_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "File decrypted and downloaded successfully",
+      });
+    } catch (error) {
+      throw new Error('Failed to decrypt file');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
@@ -108,18 +174,25 @@ export default function Dashboard() {
                       Uploaded {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
                     </p>
                   </div>
-                  <button
-                    className="text-blue-600 hover:text-blue-800"
-                    onClick={() => {/* TODO: Implement download */}}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownload(file)}
                   >
                     Download
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      <DecryptionDialog
+        isOpen={isDecryptionDialogOpen}
+        onClose={() => setIsDecryptionDialogOpen(false)}
+        onDecrypt={handleDecrypt}
+        fileName={selectedFile?.original_name || ''}
+      />
     </div>
   );
 } 
