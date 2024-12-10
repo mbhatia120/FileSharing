@@ -31,3 +31,31 @@ class ShareLink(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     expires_at = models.DateTimeField()
     can_download = models.BooleanField(default=False)
+
+class FileShare(models.Model):
+    class Permissions(models.TextChoices):
+        VIEW = 'VIEW', 'View Only'
+        DOWNLOAD = 'DOWNLOAD', 'Download'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='shares')
+    shared_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='shared_files'
+    )
+    shared_with = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='received_files'
+    )
+    permission = models.CharField(
+        max_length=10,
+        choices=Permissions.choices,
+        default=Permissions.VIEW
+    )
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('file', 'shared_with')
