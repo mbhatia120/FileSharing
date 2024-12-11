@@ -1,11 +1,12 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from .models import File, FileShare
-from .serializers import FileSerializer, FileShareSerializer
+from .models import File, FileShare, SecureLink
+from .serializers import FileSerializer, FileShareSerializer, SecureLinkSerializer
 from apps.authentication.permissions import IsAdmin
 from django.db import models 
 from rest_framework import serializers 
@@ -19,6 +20,14 @@ class FileViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     queryset = File.objects.all()
+
+    def get_permissions(self):
+        """
+        Override to allow unauthenticated access to secure links
+        """
+        if self.action == 'access_secure_link':
+            return [permissions.AllowAny()]
+        return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
         """
@@ -138,3 +147,61 @@ class FileViewSet(viewsets.ModelViewSet):
         shares = FileShare.objects.filter(file=file)
         serializer = FileShareSerializer(shares, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def generate_secure_link(self, request, pk=None):
+        file = self.get_object()
+        
+        # Check if user is the file owner
+        if file.owner != request.user:
+            return Response(
+                {"error": "Only file owner can generate secure links"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Create secure link
+        secure_link = SecureLink.create_for_file(
+            file=file,
+            user=request.user,
+            expires_in_minutes=60  # 1 hour expiry
+        )
+        
+        secure_url = request.build_absolute_uri(
+            f'/api/files/secure-link/{secure_link.id}/'
+        )
+        
+        return Response({
+            'secure_url': secure_url,
+            'expires_at': secure_link.expires_at
+        })
+
+    @action(detail=False, methods=['get'], url_path='secure-link/(?P<link_id>[^/.]+)')
+    def access_secure_link(self, request, link_id=None):
+        secure_link = get_object_or_404(SecureLink, id=link_id)
+        
+        # Check if link is expired or used
+        if secure_link.is_expired:
+            return Response(
+                {"error": "Link has expired"},
+                status=status.HTTP_410_GONE
+            )
+        
+        if secure_link.is_used:
+            return Response(
+                {"error": "Link has already been used"},
+                status=status.HTTP_410_GONE
+            )
+        
+        # Mark link as used
+        secure_link.is_used = True
+        secure_link.save()
+        
+        # Return the file
+        response = FileResponse(
+            secure_link.file.file,
+            content_type=secure_link.file.file_type
+        )
+        response['X-File-Name'] = secure_link.file.original_name
+        response['X-File-Type'] = secure_link.file.file_type
+        response['Content-Type'] = secure_link.file.file_type
+        return response

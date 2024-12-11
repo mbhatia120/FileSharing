@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 import uuid
 import os
+from django.utils import timezone
+from datetime import timedelta
 
 def get_file_path(instance, filename):
     # Get count of existing files to create incremental filename
@@ -59,3 +61,24 @@ class FileShare(models.Model):
 
     class Meta:
         unique_together = ('file', 'shared_with')
+
+class SecureLink(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='secure_links')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+    
+    @classmethod
+    def create_for_file(cls, file, user, expires_in_minutes=60):
+        expires_at = timezone.now() + timedelta(minutes=expires_in_minutes)
+        return cls.objects.create(
+            file=file,
+            created_by=user,
+            expires_at=expires_at
+        )

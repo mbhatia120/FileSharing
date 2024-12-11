@@ -9,6 +9,7 @@ import { ShareFileDialog } from './ShareFileDialog';
 import { FileViewer } from './FileViewer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SecureLinkDialog } from './SecureLinkDialog';
 
 interface File {
   id: string;
@@ -31,6 +32,8 @@ export default function Dashboard() {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerContent, setViewerContent] = useState<ArrayBuffer | null>(null);
   const [selectedFileForView, setSelectedFileForView] = useState<File | null>(null);
+  const [isSecureLinkDialogOpen, setIsSecureLinkDialogOpen] = useState(false);
+  const [selectedFileForSecureLink, setSelectedFileForSecureLink] = useState<File | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const defaultTab = location.hash.replace('#', '') || 'upload';
@@ -187,6 +190,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleGenerateSecureLink = (file: File) => {
+    setSelectedFileForSecureLink(file);
+    setIsSecureLinkDialogOpen(true);
+  };
+
   // Add new function to filter files
   const getOwnedFiles = () => {
     return files.filter(file => !file.is_shared);
@@ -324,6 +332,12 @@ export default function Dashboard() {
                       </Button>
                       <Button
                         variant="outline"
+                        onClick={() => handleGenerateSecureLink(file)}
+                      >
+                        Generate Link
+                      </Button>
+                      <Button
+                        variant="outline"
                         onClick={() => handleDownload(file)}
                       >
                         Download
@@ -411,6 +425,16 @@ export default function Dashboard() {
         fileContent={viewerContent}
         fileName={selectedFileForView?.original_name || ''}
         fileType={selectedFileForView?.file_type || ''}
+      />
+
+      <SecureLinkDialog
+        isOpen={isSecureLinkDialogOpen}
+        onClose={() => {
+          setIsSecureLinkDialogOpen(false);
+          setSelectedFileForSecureLink(null);
+        }}
+        fileId={selectedFileForSecureLink?.id || ''}
+        fileName={selectedFileForSecureLink?.original_name || ''}
       />
     </div>
   );

@@ -84,3 +84,46 @@ export const shareFile = async (fileId: string, data: ShareFileRequest): Promise
     },
   });
 };
+
+export const generateSecureLink = async (fileId: string) => {
+  const response = await api.post(`/files/${fileId}/generate_secure_link/`);
+  return response.data;
+};
+
+export const getSecureFile = async (linkId: string) => {
+  // Create a new axios instance without the auth interceptor
+  const publicApi = axios.create({
+    baseURL: 'http://localhost:8000/api'
+  });
+
+  try {
+    const response = await publicApi.get(`/files/secure-link/${linkId}/`, {
+      responseType: 'arraybuffer',
+      headers: {
+        Accept: '*/*'
+      },
+    });
+
+    // Convert headers to lowercase for consistency
+    const headers = {
+      'x-file-name': response.headers['x-file-name'] || response.headers['X-File-Name'],
+      'x-file-type': response.headers['x-file-type'] || response.headers['X-File-Type'] || response.headers['content-type'],
+    };
+    
+    console.log('Raw headers:', response.headers);
+    console.log('Processed headers:', headers);
+
+    return {
+      ...response,
+      headers,
+    };
+  } catch (error: any) {
+    // If it's a 410 error, parse the JSON error message
+    if (error.response?.status === 410) {
+      const decoder = new TextDecoder('utf-8');
+      const errorText = decoder.decode(error.response.data);
+      error.response.data = JSON.parse(errorText);
+    }
+    throw error;
+  }
+};

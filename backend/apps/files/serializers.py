@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import File, FileShare
+from .models import File, FileShare, SecureLink
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 class FileSerializer(serializers.ModelSerializer):
     is_shared = serializers.SerializerMethodField()
@@ -114,3 +115,19 @@ class FileShareSerializer(serializers.ModelSerializer):
                 'permission': 'Invalid permission value. Must be either VIEW or DOWNLOAD.'
             })
         return attrs
+
+class SecureLinkSerializer(serializers.ModelSerializer):
+    secure_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SecureLink
+        fields = ('id', 'secure_url', 'expires_at', 'is_used')
+        read_only_fields = ('id', 'secure_url', 'expires_at', 'is_used')
+    
+    def get_secure_url(self, obj):
+        request = self.context.get('request')
+        if request is None:
+            return None
+        return request.build_absolute_uri(
+            reverse('files:access-secure-link', kwargs={'pk': obj.id})
+        )
