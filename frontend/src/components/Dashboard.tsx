@@ -7,7 +7,8 @@ import { DecryptionDialog } from './DecryptionDialog';
 import { Button } from '@/components/ui/button';
 import { ShareFileDialog } from './ShareFileDialog';
 import { FileViewer } from './FileViewer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface File {
   id: string;
@@ -31,6 +32,8 @@ export default function Dashboard() {
   const [viewerContent, setViewerContent] = useState<ArrayBuffer | null>(null);
   const [selectedFileForView, setSelectedFileForView] = useState<File | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const defaultTab = location.hash.replace('#', '') || 'upload';
 
   useEffect(() => {
     let mounted = true;
@@ -195,98 +198,190 @@ export default function Dashboard() {
     return sharedFiles;
   };
 
+  const handleTabChange = (value: string) => {
+    navigate(`#${value}`);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 gap-6">
-        <div className="p-6 border rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Upload Files</h2>
-          <FileUpload onFileUpload={handleFileUpload} />
+      
+      <div className="grid grid-cols-3 gap-6 mb-8">
+        <div 
+          className={`p-8 border rounded-xl shadow-sm cursor-pointer transition-all hover:shadow-md ${
+            defaultTab === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-card'
+          }`}
+          onClick={() => handleTabChange('upload')}
+        >
+          <div className="text-center">
+            <svg
+              className="w-12 h-12 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
+            </svg>
+            <h2 className="text-xl font-semibold">Upload Files</h2>
+            <p className="mt-2 text-sm opacity-90">
+              Upload and encrypt your files
+            </p>
+          </div>
         </div>
 
-        {/* My Files Section */}
-        <div className="p-6 border rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">My Files</h2>
-          {loading ? (
-            <p className="text-gray-600">Loading files...</p>
-          ) : getOwnedFiles().length === 0 ? (
-            <p className="text-gray-600">No files uploaded yet</p>
-          ) : (
-            <div className="divide-y">
-              {getOwnedFiles().map((file) => (
-                <div key={file.id} className="py-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">{file.original_name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {formatFileSize(file.size)} • {file.file_type} • 
-                      Uploaded {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleShare(file)}
-                    >
-                      Share
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDownload(file)}
-                    >
-                      Download
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div 
+          className={`p-8 border rounded-xl shadow-sm cursor-pointer transition-all hover:shadow-md ${
+            defaultTab === 'my-files' ? 'bg-primary text-primary-foreground' : 'bg-card'
+          }`}
+          onClick={() => handleTabChange('my-files')}
+        >
+          <div className="text-center">
+            <svg
+              className="w-12 h-12 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
+            </svg>
+            <h2 className="text-xl font-semibold">My Files</h2>
+            <p className="mt-2 text-sm opacity-90">
+              Access your uploaded files
+            </p>
+          </div>
         </div>
 
-        {/* Shared With Me Section */}
-        <div className="p-6 border rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Shared With Me</h2>
-          {loading ? (
-            <p className="text-gray-600">Loading files...</p>
-          ) : getSharedFiles().length === 0 ? (
-            <p className="text-gray-600">No files shared with you</p>
-          ) : (
-            <div className="divide-y">
-              {getSharedFiles().map((file) => (
-                <div key={file.id} className="py-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">{file.original_name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {formatFileSize(file.size)} • {file.file_type} • 
-                      Shared by {file.shared_by} {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
-                      {file.permission && (
-                        <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded-full">
-                          {file.permission === 'VIEW' ? 'View Only' : 'Download Allowed'}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {file.permission === 'VIEW' ? (
+        <div 
+          className={`p-8 border rounded-xl shadow-sm cursor-pointer transition-all hover:shadow-md ${
+            defaultTab === 'shared' ? 'bg-primary text-primary-foreground' : 'bg-card'
+          }`}
+          onClick={() => handleTabChange('shared')}
+        >
+          <div className="text-center">
+            <svg
+              className="w-12 h-12 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+              />
+            </svg>
+            <h2 className="text-xl font-semibold">Shared With Me</h2>
+            <p className="mt-2 text-sm opacity-90">
+              View files shared by others
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        {defaultTab === 'upload' && (
+          <div className="p-6 border rounded-lg shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Upload Files</h2>
+            <FileUpload onFileUpload={handleFileUpload} />
+          </div>
+        )}
+
+        {defaultTab === 'my-files' && (
+          <div className="p-6 border rounded-lg shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">My Files</h2>
+            {loading ? (
+              <p className="text-gray-600">Loading files...</p>
+            ) : getOwnedFiles().length === 0 ? (
+              <p className="text-gray-600">No files uploaded yet</p>
+            ) : (
+              <div className="divide-y">
+                {getOwnedFiles().map((file) => (
+                  <div key={file.id} className="py-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">{file.original_name}</h3>
+                      <p className="text-sm text-gray-500">
+                        {formatFileSize(file.size)} • {file.file_type} • 
+                        Uploaded {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
                       <Button
                         variant="outline"
-                        onClick={() => handleView(file)}
+                        onClick={() => handleShare(file)}
                       >
-                        View
+                        Share
                       </Button>
-                    ) : file.permission === 'DOWNLOAD' ? (
                       <Button
                         variant="outline"
                         onClick={() => handleDownload(file)}
                       >
                         Download
                       </Button>
-                    ) : null}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {defaultTab === 'shared' && (
+          <div className="p-6 border rounded-lg shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Shared With Me</h2>
+            {loading ? (
+              <p className="text-gray-600">Loading files...</p>
+            ) : getSharedFiles().length === 0 ? (
+              <p className="text-gray-600">No files shared with you</p>
+            ) : (
+              <div className="divide-y">
+                {getSharedFiles().map((file) => (
+                  <div key={file.id} className="py-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">{file.original_name}</h3>
+                      <p className="text-sm text-gray-500">
+                        {formatFileSize(file.size)} • {file.file_type} • 
+                        Shared by {file.shared_by} {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
+                        {file.permission && (
+                          <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded-full">
+                            {file.permission === 'VIEW' ? 'View Only' : 'Download Allowed'}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {file.permission === 'VIEW' ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleView(file)}
+                        >
+                          View
+                        </Button>
+                      ) : file.permission === 'DOWNLOAD' ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleDownload(file)}
+                        >
+                          Download
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <ShareFileDialog
