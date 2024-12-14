@@ -1,73 +1,51 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { LoginCredentials, AuthResponse } from '@/types/auth';
-import axios from '@/lib/axios';
+import { login as loginApi } from '@/services/api';
 import { auth } from '@/utils/auth';
 
-// Get initial state from localStorage
-const getInitialState = () => {
-  return {
-    user: auth.getUser(),
-    token: auth.getToken(),
-    isLoading: false,
-    error: null as string | null,
-  };
+interface AuthState {
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  } | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+// Initialize state with persisted user data
+const initialState: AuthState = {
+  user: auth.getUser(),
+  isLoading: false,
+  error: null,
 };
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: LoginCredentials, { rejectWithValue }) => {
+  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<AuthResponse>('/auth/login/', credentials);
-      const { user, access, refresh } = response.data;
-      
+      const response = await loginApi(credentials);
       // Store tokens and user data
-      auth.setTokens(access, refresh);
-      auth.setUser(user);
-      
-      return { user, token: access };
+      auth.setToken(response.access);
+      auth.setRefreshToken(response.refresh);
+      auth.setUser(response.user);
+      return response.user;
     } catch (error: any) {
-      console.error('Login Error:', error.response?.data || error.message);
-      return rejectWithValue(
-        error.response?.data?.message || 
-        error.response?.data?.detail || 
-        'Login failed'
-      );
-    }
-  }
-);
-
-export const register = createAsyncThunk(
-  'auth/register',
-  async (credentials: LoginCredentials, { rejectWithValue }) => {
-    try {
-      const response = await axios.post<AuthResponse>('/auth/register/', credentials);
-      const { user, access, refresh } = response.data;
-      
-      // Store tokens and user data
-      auth.setTokens(access, refresh);
-      auth.setUser(user);
-      
-      return { user, token: access };
-    } catch (error: any) {
-      console.error('Registration Error:', error.response?.data || error.message);
-      return rejectWithValue(
-        error.response?.data?.message || 
-        error.response?.data?.detail || 
-        'Registration failed'
-      );
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.error ||
+                          'Login failed. Please check your credentials.';
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: getInitialState(),
+  initialState,
   reducers: {
     logout: (state) => {
-      auth.clear();
       state.user = null;
-      state.token = null;
       state.error = null;
+      auth.clear();
     },
   },
   extraReducers: (builder) => {
@@ -78,25 +56,10 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.user = action.payload;
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(register.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.error = null;
-      })
-      .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

@@ -1,5 +1,3 @@
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,14 +8,26 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 export default function UserNav() {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
   
   const handleLogout = () => {
-    logout();
-    navigate('/auth/login');
+    try {
+      logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -39,7 +49,10 @@ export default function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
+        <DropdownMenuItem 
+          onClick={handleLogout}
+          className="text-red-600 cursor-pointer"
+        >
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -1,9 +1,14 @@
 import { auth } from '@/utils/auth';
 import axios from 'axios';
 
-export const api = axios.create({
-  baseURL: 'http://localhost:8000/api'
-}); 
+const API_URL = import.meta.env.VITE_API_URL;
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // Add request interceptor
 api.interceptors.request.use(
@@ -143,4 +148,24 @@ export const getSecureFile = async (linkId: string) => {
     }
     throw error;
   }
+};
+
+export const register = async (data: { email: string; password: string }) => {
+  const response = await api.post('/auth/register/', data);
+  return response.data;
+};
+
+interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
+export const login = async (credentials: { email: string; password: string }): Promise<LoginResponse> => {
+  const response = await api.post('/auth/login/', credentials);
+  return response.data;
 };

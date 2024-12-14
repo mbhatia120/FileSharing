@@ -26,13 +26,21 @@ export default function Login(): JSX.Element {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const result = await dispatch(login(formData));
-    if (!result.type.endsWith('rejected')) {
+    try {
+      const result = await dispatch(login(formData)).unwrap();
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Successfully logged in!",
+        });
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
       toast({
-        title: "Success",
-        description: "Successfully logged in!",
+        title: "Login failed",
+        description: error,
+        variant: "destructive",
       });
-      navigate('/');
     }
   };
 
