@@ -4,7 +4,6 @@ import Navbar from './components/Navbar';
 
 export default function App() {
   const location = useLocation();
-  console.log('App rendered, current location:', location);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

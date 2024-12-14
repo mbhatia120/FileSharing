@@ -13,7 +13,6 @@ export default function GoogleCallback() {
 
   useEffect(() => {
     const processCode = async () => {
-      // Prevent double processing
       if (processedRef.current) {
         return;
       }
@@ -21,15 +20,7 @@ export default function GoogleCallback() {
       const code = searchParams.get('code');
       const error = searchParams.get('error');
       
-      console.log('GoogleCallback mounted with:', {
-        code: code ? code.substring(0, 10) + '...' : null,
-        error,
-        location: location.pathname,
-        processed: processedRef.current
-      });
-
       if (error) {
-        console.error('Google auth error:', error);
         toast({
           title: "Authentication Failed",
           description: "Google sign-in was cancelled or failed",
@@ -40,7 +31,6 @@ export default function GoogleCallback() {
       }
       
       if (!code) {
-        console.error('No auth code received');
         toast({
           title: "Invalid Request",
           description: "No authentication code received",
@@ -53,14 +43,12 @@ export default function GoogleCallback() {
       try {
         processedRef.current = true;
         const response = await dispatch(googleLogin(code)).unwrap();
-        console.log('Google login success:', response);
         toast({
           title: "Success",
           description: "Successfully logged in with Google!",
         });
         navigate('/dashboard');
       } catch (error) {
-        console.error('Google login error:', error);
         toast({
           title: "Login failed",
           description: typeof error === 'string' ? error : "Failed to login with Google",
@@ -72,7 +60,6 @@ export default function GoogleCallback() {
 
     processCode();
 
-    // Cleanup function
     return () => {
       processedRef.current = false;
     };

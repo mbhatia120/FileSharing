@@ -201,9 +201,7 @@ export default function Dashboard() {
   };
 
   const getSharedFiles = () => {
-    const sharedFiles = files.filter(file => file.is_shared);
-    console.log('Shared Files:', sharedFiles); // Debug log
-    return sharedFiles;
+    return files.filter(file => file.is_shared);
   };
 
   const handleTabChange = (value: string) => {
@@ -365,7 +363,7 @@ export default function Dashboard() {
                       <h3 className="font-medium">{file.original_name}</h3>
                       <p className="text-sm text-gray-500">
                         {formatFileSize(file.size)} • {file.file_type} • 
-                        Shared by {file.shared_by} {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
+                        Shared by {file.shared_by}
                         {file.permission && (
                           <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded-full">
                             {file.permission === 'VIEW' ? 'View Only' : 'Download Allowed'}

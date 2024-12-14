@@ -48,8 +48,8 @@ export const router = createBrowserRouter([
 
 // Add debug logging
 router.subscribe((state) => {
-  console.log('Current navigation state:', state);
+  // console.log('Current navigation state:', state);
 });
 
 // Debug current routes
-console.log('Registered routes:', router.routes); 
+// console.log('Registered routes:', router.routes); 

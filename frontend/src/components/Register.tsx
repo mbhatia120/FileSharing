@@ -40,7 +40,6 @@ export default function Register() {
       
       navigate('/auth/login');
     } catch (error: any) {
-      console.error('Registration error:', error);
       const errorMessage = error.response?.data?.detail || 
                           error.response?.data?.email?.[0] || 
                           error.response?.data?.password?.[0] ||

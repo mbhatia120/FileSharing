@@ -7,7 +7,6 @@ import { getSecureFile } from '@/services/api';
 
 export default function PublicFileViewer() {
   const { linkId } = useParams();
-  console.log('PublicFileViewer rendered with linkId:', linkId);
 
   const [decryptionKey, setDecryptionKey] = useState('');
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -33,28 +32,21 @@ export default function PublicFileViewer() {
       setIsDecrypting(true);
       const response = await getSecureFile(linkId!);
       
-      // Get file metadata from response headers
       const fileName = response.headers['x-file-name'];
       const fileType = response.headers['x-file-type'];
       
       if (!fileName || !fileType) {
-        console.error('Missing file metadata in headers:', response.headers);
         throw new Error('Failed to get file metadata');
       }
       
       setFileName(fileName);
       setFileType(fileType);
 
-      // Decrypt the file
       const encryptedData = response.data;
       const decryptedContent = await decryptFile(encryptedData, decryptionKey);
       setFileContent(decryptedContent);
       
-      console.log('Response headers:', response.headers);
-      console.log('File type:', fileType);
-      console.log('File name:', fileName);
     } catch (error: any) {
-      console.error('Error details:', error);
       let errorMessage = "Failed to decrypt file";
       
       if (error.response?.status === 410) {
@@ -68,7 +60,6 @@ export default function PublicFileViewer() {
         variant: "destructive",
       });
       
-      // Show a more prominent error message in the UI
       setFileContent(null);
       setFileType('');
       setFileName('');

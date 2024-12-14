@@ -110,7 +110,7 @@ export const getSecureFile = async (linkId: string) => {
     });
 
     // Log all headers for debugging
-    console.log('Raw response headers:', response.headers);
+    // console.log('Raw response headers:', response.headers);
 
     // Get file name from headers, trying different cases
     const fileName = response.headers['x-file-name'] || 
@@ -125,8 +125,8 @@ export const getSecureFile = async (linkId: string) => {
                     response.headers['Content-Type'];
 
     // Log the extracted values
-    console.log('Extracted fileName:', fileName);
-    console.log('Extracted fileType:', fileType);
+    // console.log('Extracted fileName:', fileName);
+    // console.log('Extracted fileType:', fileType);
 
     // Create normalized headers object
     const headers = {
@@ -173,17 +173,17 @@ export const login = async (credentials: { email: string; password: string }): P
 export const googleLogin = async (code: string) => {
   try {
     const redirectUri = import.meta.env.VITE_REDIRECT_URI;
-    console.log('Google login request:', {
-      code: code.substring(0, 10) + '...',
-      redirectUri,
-      apiUrl: api.defaults.baseURL
-    });
+    // console.log('Google login request:', {
+    //   code: code.substring(0, 10) + '...',
+    //   redirectUri,
+    //   apiUrl: api.defaults.baseURL
+    // });
     
     const requestData = { 
       code,
       redirect_uri: redirectUri
     };
-    console.log('Request payload:', requestData);
+    // console.log('Request payload:', requestData);
 
     const response = await api.post('/auth/google/callback/', requestData, {
       headers: {
@@ -191,7 +191,7 @@ export const googleLogin = async (code: string) => {
       }
     });
     
-    console.log('Google login response:', response.data);
+    // console.log('Google login response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('Full error details:', {

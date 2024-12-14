@@ -47,10 +47,10 @@ export function ShareFileDialog({
 
     try {
       setIsSharing(true);
-      console.log("Sending data:", {
-        shared_with_email: email,
-        permission: permission,
-      });
+      // console.log("Sending data:", {
+      //   shared_with_email: email,
+      //   permission: permission,
+      // });
       
       await shareFile(fileId, {
         shared_with_email: email,

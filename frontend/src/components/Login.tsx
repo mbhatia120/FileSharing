@@ -75,10 +75,6 @@ export default function Login(): JSX.Element {
   const handleGoogleLogin = async () => {
     try {
       const redirectUri = import.meta.env.VITE_REDIRECT_URI;
-      console.log('Initializing Google login with:', {
-        clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        redirectUri
-      });
 
       const client = window.google.accounts.oauth2.initCodeClient({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -92,7 +88,6 @@ export default function Login(): JSX.Element {
 
       client.requestCode();
     } catch (error: any) {
-      console.error('Google login initialization error:', error);
       toast({
         title: "Error",
         description: "Failed to initialize Google login",

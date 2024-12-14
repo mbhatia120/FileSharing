@@ -31,7 +31,7 @@ export function FileViewer({
 
   const decryptAndDownload = async (fileData: ArrayBuffer, key: string): Promise<ArrayBuffer> => {
     // Convert encryption key to crypto key
-    console.log('Decrypting file with key:', key);
+    // console.log('Decrypting file with key:', key);
     const encoder = new TextEncoder();
     const keyData = encoder.encode(key);
     const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
