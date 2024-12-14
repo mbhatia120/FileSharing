@@ -1,45 +1,54 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
-import Dashboard from './components/Dashboard';
-import LandingPage from './components/LandingPage';
 import Login from './components/Login';
-import PublicFileViewer from './components/PublicFileViewer';
-import GoogleCallback from './components/GoogleCallback';
+import Register from './components/Register';
+import Dashboard from './components/Dashboard';
 import NotFound from './components/NotFound';
+import LandingPage from './components/LandingPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import GoogleCallback from './components/GoogleCallback';
+import PublicFileViewer from './components/PublicFileViewer';
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <App />,
-    errorElement: <NotFound />,
     children: [
       {
         index: true,
         element: <LandingPage />,
       },
       {
-        path: "dashboard",
-        element: <Dashboard />,
-      },
-      {
-        path: "auth",
+        path: 'auth',
         children: [
           {
-            path: "login",
+            path: 'login',
             element: <Login />,
           },
           {
-            path: "callback",
+            path: 'register',
+            element: <Register />,
+          },
+          {
+            path: 'callback',
             element: <GoogleCallback />,
           },
         ],
       },
       {
-        path: "view/:linkId",
+        path: 'dashboard',
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'share/:linkId',
         element: <PublicFileViewer />,
       },
       {
-        path: "*",
+        path: '*',
         element: <NotFound />,
       },
     ],
