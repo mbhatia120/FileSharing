@@ -169,3 +169,37 @@ export const login = async (credentials: { email: string; password: string }): P
   const response = await api.post('/auth/login/', credentials);
   return response.data;
 };
+
+export const googleLogin = async (code: string) => {
+  try {
+    const redirectUri = import.meta.env.VITE_REDIRECT_URI;
+    console.log('Google login request:', {
+      code: code.substring(0, 10) + '...',
+      redirectUri,
+      apiUrl: api.defaults.baseURL
+    });
+    
+    const requestData = { 
+      code,
+      redirect_uri: redirectUri
+    };
+    console.log('Request payload:', requestData);
+
+    const response = await api.post('/auth/google/callback/', requestData, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    console.log('Google login response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Full error details:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers,
+      config: error.config
+    });
+    throw error.response?.data || error.message || 'Failed to authenticate with Google';
+  }
+};

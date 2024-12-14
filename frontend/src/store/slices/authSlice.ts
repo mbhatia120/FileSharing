@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { login as loginApi } from '@/services/api';
+import { login as loginApi, googleLogin as googleLoginApi } from '@/services/api';
 import { auth } from '@/utils/auth';
 
 interface AuthState {
@@ -38,6 +38,24 @@ export const login = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (code: string, { rejectWithValue }) => {
+    try {
+      const response = await googleLoginApi(code);
+      // Store tokens and user data
+      auth.setToken(response.access);
+      auth.setRefreshToken(response.refresh);
+      auth.setUser(response.user);
+      return response.user;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.detail || 'Failed to login with Google'
+      );
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -60,6 +78,19 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(googleLogin.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

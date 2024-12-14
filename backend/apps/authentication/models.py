@@ -19,6 +19,8 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None  # Remove username field
     email = models.EmailField(unique=True)  # Make email required and unique
+    google_id = models.CharField(max_length=100, blank=True, null=True)
+    picture = models.URLField(max_length=500, blank=True, null=True)
 
     class Roles(models.TextChoices):
         ADMIN = 'ADMIN', 'Admin'
@@ -49,3 +51,9 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.email} ({self.role})"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['google_id']),
+        ]

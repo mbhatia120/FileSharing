@@ -38,3 +38,8 @@ ENV/
 
 # Add this line
 assets/ 
+
+# Add these lines
+.env
+.env.*
+!.env.example 
