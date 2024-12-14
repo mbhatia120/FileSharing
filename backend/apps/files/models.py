@@ -13,19 +13,31 @@ def get_file_path(instance, filename):
 
 class File(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='files'
+    )
     original_name = models.CharField(max_length=255)
     file = models.FileField(upload_to=get_file_path)
     file_type = models.CharField(max_length=100)
     size = models.BigIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_shared = models.BooleanField(default=False)
+    shared_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='shared_by_files'
+    )
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.original_name} ({self.size} bytes)"
+        return f"{self.original_name} ({self.file_type})"
 
 class ShareLink(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

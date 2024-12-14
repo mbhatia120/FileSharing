@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5,53 +6,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Button } from './ui/button';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 export default function UserNav() {
   const { user, logout } = useAuth();
-  
-  const handleLogout = () => {
-    try {
-      logout();
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to logout. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{user?.email[0].toUpperCase()}</AvatarFallback>
-          </Avatar>
+        <Button variant="ghost" size="sm">
+          {user?.email}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.email}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user?.role}
-            </p>
-          </div>
-        </DropdownMenuLabel>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={handleLogout}
-          className="text-red-600 cursor-pointer"
+        <DropdownMenuItem asChild>
+          <Link to="/dashboard" className="w-full cursor-pointer">
+            Dashboard
+          </Link>
+        </DropdownMenuItem>
+        
+        {user?.role === 'ADMIN' && (
+          <DropdownMenuItem asChild>
+            <Link to="/admin" className="w-full cursor-pointer">
+              Admin Dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
+        
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={logout}
         >
           Log out
         </DropdownMenuItem>

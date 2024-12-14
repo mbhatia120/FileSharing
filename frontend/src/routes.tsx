@@ -1,42 +1,28 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
+import Dashboard from './components/Dashboard';
+import { AdminDashboard } from './components/AdminDashboard';
+import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
-import Dashboard from './components/Dashboard';
-import NotFound from './components/NotFound';
-import LandingPage from './components/LandingPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import GoogleCallback from './components/GoogleCallback';
 import PublicFileViewer from './components/PublicFileViewer';
+import GoogleCallback from './components/GoogleCallback';
+import NotFound from './components/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <App />,
+    errorElement: <NotFound />,
     children: [
       {
         index: true,
         element: <LandingPage />,
       },
       {
-        path: 'auth',
-        children: [
-          {
-            path: 'login',
-            element: <Login />,
-          },
-          {
-            path: 'register',
-            element: <Register />,
-          },
-          {
-            path: 'callback',
-            element: <GoogleCallback />,
-          },
-        ],
-      },
-      {
-        path: 'dashboard',
+        path: "dashboard",
         element: (
           <ProtectedRoute>
             <Dashboard />
@@ -44,11 +30,36 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'share/:linkId',
+        path: "admin",
+        element: (
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "auth",
+        children: [
+          {
+            path: "login",
+            element: <Login />,
+          },
+          {
+            path: "register",
+            element: <Register />,
+          },
+          {
+            path: "callback",
+            element: <GoogleCallback />,
+          },
+        ],
+      },
+      {
+        path: "view/:linkId",
         element: <PublicFileViewer />,
       },
       {
-        path: '*',
+        path: "*",
         element: <NotFound />,
       },
     ],

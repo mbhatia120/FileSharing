@@ -2,12 +2,14 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { login as loginApi, googleLogin as googleLoginApi } from '@/services/api';
 import { auth } from '@/utils/auth';
 
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
 interface AuthState {
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  } | null;
+  user: User | null;
   isLoading: boolean;
   error: string | null;
 }

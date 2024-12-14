@@ -9,5 +9,4 @@ cryptography
 python-jose[cryptography]
 python-magic
 django-otp
-qrcode
-djangorestframework-simplejwt>=5.2.0 
+qrcode 
