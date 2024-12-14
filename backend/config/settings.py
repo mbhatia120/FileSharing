@@ -6,15 +6,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 INSTALLED_APPS = [
-    # ...
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
     'rest_framework',
-    'accounts',
     'corsheaders',
     'apps.authentication',
-    # ...
+    'apps.files',
 ]
 
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -66,3 +70,8 @@ except ImportError:
 # Make sure these settings are available
 if not hasattr(globals(), 'GOOGLE_OAUTH2_CLIENT_ID') or not hasattr(globals(), 'GOOGLE_OAUTH2_CLIENT_SECRET'):
     raise ValueError("Google OAuth2 settings are not configured. Please check your local_settings.py")
+
+# Make sure your apps are in the Python path
+import sys
+APPS_DIR = os.path.join(BASE_DIR, 'apps')
+sys.path.insert(0, APPS_DIR)

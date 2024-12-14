@@ -104,7 +104,7 @@ export default function Login(): JSX.Element {
         <div className="max-w-lg">
           <h2 className="text-4xl font-display font-bold mb-4">File sharing that just works</h2>
           <p className="text-lg opacity-90">
-            CompressX uses state-of-the-art compression algorithms to ensure your files are shared as efficiently as possible.
+            SecureX uses state-of-the-art compression algorithms to ensure your files are shared as efficiently as possible.
           </p>
         </div>
       </div>

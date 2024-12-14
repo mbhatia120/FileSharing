@@ -1,10 +1,11 @@
 Django>=4.2.0
 djangorestframework>=3.14.0
+djangorestframework-simplejwt>=5.2.2
+django-cors-headers>=4.2.0
 python-dotenv>=1.0.0
 google-auth>=2.22.0
 google-auth-oauthlib>=1.0.0
 google-auth-httplib2>=0.1.0
-django-cors-headers>=4.0.0
 cryptography
 python-jose[cryptography]
 python-magic
