@@ -12,7 +12,7 @@ export default function Navbar() {
         <div className="flex h-14 items-center justify-between">
           <div className="flex">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="font-semibold text-lg">CompressX</span>
+              <span className="font-semibold text-lg">SecureX</span>
             </Link>
           </div>
           

@@ -57,7 +57,7 @@ export default function Footer() {
           
           <div className="mt-8 pt-8 border-t">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} CompressX. All rights reserved.
+              © {new Date().getFullYear()} SecureX. All rights reserved.
             </p>
           </div>
         </div>
