@@ -183,9 +183,9 @@ export default function PublicFileViewer() {
               style={{
                 pointerEvents: 'all',
                 userSelect: 'none',
-                '-webkit-user-select': 'none',
-                '-moz-user-select': 'none',
-                '-ms-user-select': 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
               }}
             />
             <div

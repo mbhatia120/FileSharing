@@ -204,4 +204,6 @@ class FileViewSet(viewsets.ModelViewSet):
         response['X-File-Name'] = secure_link.file.original_name
         response['X-File-Type'] = secure_link.file.file_type
         response['Content-Type'] = secure_link.file.file_type
+        response['Content-Disposition'] = f'inline; filename="{secure_link.file.original_name}"'
+        response['Access-Control-Expose-Headers'] = 'X-File-Name, X-File-Type, Content-Type, Content-Disposition'
         return response

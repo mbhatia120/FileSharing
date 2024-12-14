@@ -104,18 +104,35 @@ export const getSecureFile = async (linkId: string) => {
       },
     });
 
-    // Convert headers to lowercase for consistency
+    // Log all headers for debugging
+    console.log('Raw response headers:', response.headers);
+
+    // Get file name from headers, trying different cases
+    const fileName = response.headers['x-file-name'] || 
+                    response.headers['X-File-Name'] || 
+                    response.headers['x-filename'] ||
+                    response.headers['X-Filename'];
+
+    // Get file type from headers, trying different cases
+    const fileType = response.headers['x-file-type'] || 
+                    response.headers['X-File-Type'] || 
+                    response.headers['content-type'] ||
+                    response.headers['Content-Type'];
+
+    // Log the extracted values
+    console.log('Extracted fileName:', fileName);
+    console.log('Extracted fileType:', fileType);
+
+    // Create normalized headers object
     const headers = {
-      'x-file-name': response.headers['x-file-name'] || response.headers['X-File-Name'],
-      'x-file-type': response.headers['x-file-type'] || response.headers['X-File-Type'] || response.headers['content-type'],
+      'x-file-name': fileName,
+      'x-file-type': fileType,
     };
-    
-    console.log('Raw headers:', response.headers);
-    console.log('Processed headers:', headers);
 
     return {
       ...response,
       headers,
+      data: response.data,
     };
   } catch (error: any) {
     // If it's a 410 error, parse the JSON error message
