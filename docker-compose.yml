@@ -10,7 +10,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - DEBUG=1
+      - DEBUG=0
       - PYTHONPATH=/app
     command: python manage.py runserver 0.0.0.0:8000
     env_file:

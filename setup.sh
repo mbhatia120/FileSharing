@@ -1,0 +1,1 @@
+#copy paste the content of the script from the documentation provided in readme.md
