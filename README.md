@@ -16,7 +16,7 @@ A secure, enterprise-grade file sharing platform with end-to-end encryption, mul
 
 ## Demo video 
 
-Video link - 
+Video link - https://www.loom.com/share/acedd00486c24b57855dcdd5b336c7ce
 
 ## Table of Contents
 - [Overview](#overview)
